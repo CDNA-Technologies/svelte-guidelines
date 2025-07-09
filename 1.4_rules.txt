@@ -1,0 +1,30 @@
+Okay, here are the guidelines rephrased as strict rules for an AI development tool, emphasizing the exact process and potential chaos from non-adherence.
+
+**Nuclei Svelte Project Development Rules**
+
+1.  **Rule 1: Mandatory Adherence to Design and Styling Standards**
+    *   **All color usage MUST strictly follow the Colour Mapping** defined in `/lib/core-commons/ColorTemplate.svelte`. **Hardcoding of colors is absolutely FORBIDDEN**; only the defined theme colors are permissible. Failure here **GUARANTEES** inconsistent UI and breaks theme support, causing significant maintenance issues across different environments and dark mode.
+    *   **Typography MUST be controlled SOLELY by applying the specific CSS classes** outlined in `/lib/core-commons/TypographyTemplate.svelte`. These classes implement the exact font-weight and font-size specifications from the Figma design. Deviating from this rule **DIRECTLY VIOLATES** UI/UX consistency, making the application look disjointed from the intended design.
+    *   When building UI, **components from approved libraries (e.g., `svelte-vitals`, `dasiyui`) MUST be utilized whenever possible**. Custom implementations of standard UI elements (like buttons, inputs, etc., apart from specified exceptions) are **NOT permitted**, as this duplicates effort and creates inconsistent user experiences. The generated UI **MUST match the Figma design PRECISELY**.
+    *   The design **MUST be tested on different devices and browsers** (Chrome, Safari) and dark theme scenarios MUST be considered during implementation. Ignoring this leads to UI breakage in diverse user environments.
+
+2.  **Rule 2: Strict Enforcement of Directory Structure and File Conventions**
+    *   **Reusable components intended for use in multiple parts of the application MUST be placed EXCLUSIVELY within the `src/lib` directory**. Components used only by a specific route **MUST reside ONLY within the `components` subfolder** of that route's directory (e.g., `src/routes/your-route/components/YourComponent.svelte`). Incorrect placement **OBSTRUCTS** maintainability and component discoverability.
+    *   **There SHALL be ONLY ONE central store file PER category/feature**, located strictly at `src/lib/{category}-commons/{category}.store.ts`. Creating multiple store files for a single category is **FORBIDDEN** as it increases server round trips and download size, leading to performance degradation.
+    *   **All API calls and service logic for a given category MUST be consolidated into a single API file**, located strictly at `src/lib/{category}-commons/{category}.api.ts`. Spreading API logic across multiple files **CREATES CHAOS** and makes the codebase difficult to manage and understand.
+
+3.  **Rule 3: Unwavering Compliance with Naming Standards**
+    *   **Constants MUST be declared using `const` and ALL CAPITAL letters**.
+    *   **Variables and function names MUST ALWAYS follow camelCase**.
+    *   **Svelte component file names MUST begin with a Capital letter**.
+    *   **CSS class names MUST be in small case separated by hyphens**. Failure to adhere to these naming rules (Constants, Variables, Functions, Component files, CSS classes) **DIRECTLY CONTRADICTS** project standards, severely reducing code readability and making collaboration and maintenance significantly harder.
+
+4.  **Rule 4: Mandatory Testing and Error Handling Implementation**
+    *   **Unit tests MUST be written for ALL implemented business logic**. The testing framework `vitest` and testing library `@testing-library/svelte` are the **REQUIRED tools**. Lack of comprehensive unit tests **GUARANTEES** future regressions and unstable features.
+    *   **Robust Error Handling is MANDATORY**, especially for API calls. The `LCEStore` utility from `svelte-vitals` **MUST be used** to manage and display loading, error, and content states (`setLoadingLce()`, `setErrorLce(errorHandlingDetails)`, `setContentLce()`). The UI **MUST be conditionally rendered based on the `$lceStore.isLoading`, `$lceStore.hasError`, and `$lceStore.hasContent` flags**. Ignoring proper error handling using `LCEStore` leads to critical failures in user experience and requires significant rework.
+    *   **Edge cases and unexpected user input MUST be handled**. **User-friendly error messages MUST be displayed**, and these messages **MUST be verified by the product team**. Failing to handle edge cases and provide clear errors results in unpredictable behavior and frustrates users.
+
+5.  **Rule 5: Strict Management of Environment and Service URIs**
+    *   **API Hostname MUST be configured SOLELY via the `VITE_HOSTNAME` environment variable** accessed using `import.meta.env.VITE_HOSTNAME`. The current environment (dev/uat/prod) **MUST be determined using the `VITE_ENV` variable** accessed via `import.meta.env.VITE_ENV`.
+    *   The `.env.local` file **IS ONLY for local development environment variables**. The `.env` file **SHALL NOT be manually edited**; its contents are updated **EXCLUSIVELY by the CI/CD pipeline** using the Makefile and `update.env.sh` script.
+    *   **Cross Service URIs (for services outside the current SPA) MUST be constructed by taking the `location.href.origin` for the base URI** and appending the relevant environment version (e.g., `dev` or `v1-0` derived from `VITE_ENV`) and the service path. Building these URLs differently **WILL BREAK** navigation across different environments.

@@ -1,0 +1,33 @@
+Okay, here are instructions for an AI development tool, framed as guidelines based on the provided sources, intended to mirror how a new intern would learn the core development jurisdictions.
+
+**Guidelines for AI Development Tool (Nuclei Svelte Project)**
+
+1.  **Adhere to UI/UX and Styling Specifications**
+    *   Utilize the defined **Colour Mapping** classes or tokens specified in `/lib/core-commons/ColorTemplate.svelte` for applying colors across components. This ensures consistency and theme support.
+    *   Apply **Typography Mapping** classes, as outlined with examples like `heading-1`, `sub-text`, `cta-text`, from `/lib/core-commons/TypographyTemplate.svelte` to control text styles, ensuring font weight and size match design.
+    *   **Strictly avoid hardcoding colors** within component styles; only use the predefined theme colors.
+    *   Ensure the generated UI matches the minute aspects of the Figma UI Design and prioritize using common components from libraries like `svelte-vitals` or `dasiyui` where applicable.
+
+2.  **Maintain Correct Code Structure and File Placement**
+    *   Place general, reusable Svelte components intended for use in multiple locations within the `src/lib` directory.
+    *   Components that are specific to a single route should be located within the `components` folder inside that route's directory (e.g., `src/routes/your-route/components/YourComponent.svelte`).
+    *   Ensure each category/feature within the project has only **one central store file**, located at `src/lib/{category}-commons/{category}.store.ts`.
+    *   Consolidate all API calls and service logic for a specific category into a **single API file** located at `src/lib/{category}-commons/{category}.api.ts`.
+
+3.  **Follow Project Naming Conventions**
+    *   Define **Constants using CAPITAL letters** and the `const` keyword.
+    *   Use **camelCase** for variable names and function names.
+    *   Svelte component file names should **start with a capital letter** (e.g., `MyComponent.svelte`).
+    *   CSS class names must follow the convention of **small case separated by hyphens** (e.g., `.my-custom-class`).
+
+4.  **Implement Robust Testing and Error Handling**
+    *   Generate corresponding **Unit Tests** for all business logic implemented.
+    *   Implement comprehensive **Error Handling**, particularly for API interactions, by utilizing utilities like `LCEStore` from `svelte-vitals` to manage and display loading, error, and content states appropriately.
+    *   Ensure the code handles **edge cases** gracefully and displays **user-friendly error messages** as verified by the product team.
+    *   Consider testability of the code and add or update unit/UI test cases as needed.
+
+5.  **Manage Environment-Specific Configurations**
+    *   Utilize **environment variables** like `VITE_HOSTNAME` for defining API endpoints and `VITE_ENV` for determining the current environment (dev/uat/prod).
+    *   Access these environment variables within the code using `import.meta.env`.
+    *   When constructing URLs for **Cross Service URIs** (web app services outside the current SPA), use the base URI derived from `location.href.origin` combined with environment-specific path segments or versions.
+    *   Understand that `.env.local` is used for local development environment variables, while `.env` is populated by the CI/CD pipeline.

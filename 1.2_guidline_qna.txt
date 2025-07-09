@@ -1,0 +1,91 @@
+Nuclei Svelte Development Study Guide
+Quiz
+Where are environment variables for local development defined in a Nuclei Svelte project?
+What is the purpose of Cross Service URIs?
+What is the recommended main branch name for a category/product svelte GitHub repository?
+According to the code management guidelines, how long should a Pull Request (PR) typically be?
+What is the primary function of the svelte-vitals package?
+When should components be placed in the src/lib folder versus the src/routes directory?
+What naming convention should be used for Svelte component files?
+What is the difference in color between base-content and base-content-light?
+Which configuration files are updated on Nginx for different web environments (e.g., dev, staging, uat)?
+What is the purpose of the readyz endpoint in a SvelteKit application?
+Essay Format Questions
+Discuss the CI/CD pipeline for Nuclei Svelte projects, explaining the role of .github/workflows files, charts, configs, and the Makefile in deploying to different environments (dev, UAT, Production).
+Analyze the key considerations for package and dependency management in Nuclei Svelte projects, including factors like necessity, size impact, popularity, and version changes.
+Explain the importance of comprehensive testing in Nuclei Svelte development, covering unit tests, UI/UX testing across devices and browsers, error handling scenarios, and edge case testing.
+Describe the process for creating and releasing both stable and test versions of the svelte-vitals package, including the necessary GitHub permissions and steps involved.
+Evaluate the principles of Test-Driven Development (TDD) as outlined in the guidelines, focusing on the cycle of writing tests, writing minimum code, refactoring, and the recommended testing tools and practices.
+Glossary of Key Terms
+API Hostname: The endpoint used for making API calls to backend services, configured via environment variables.
+Cross Service URIs: Absolute URIs used to launch web app services that are not part of the current Single Page Application (SPA).
+.env file: An environment variable file updated during the CI/CD pipeline with values defined in the Makefile.
+.env.local file: An environment variable file used specifically for local development.
+SPA (Single Page Application): A web application that loads a single HTML page and dynamically updates that page as the user interacts with the application.
+PR (Pull Request): A mechanism used in version control systems like Git to propose changes and have them reviewed before merging into a main branch.
+Feature base branch: A dedicated branch created by a developer for working on a specific feature.
+Unit tests: Tests written to verify the behavior of small, isolated units of code, particularly business logic.
+Figma UI Design: Design specifications created in Figma, which both coders and reviewers should follow closely.
+Modular code: Code that is broken down into small, independent, and reusable modules.
+Global variables: Variables accessible throughout the entire program, which should be minimized according to guidelines.
+npm run build: A command used to build the SvelteKit application, producing a runnable output.
+Dependency: An external library or package that a project relies on.
+Breaking change: A change in a package version that is not backward compatible and may cause existing code to fail.
+UI (User Interface): The visual elements and layout of an application.
+UX (User Experience): The overall experience a user has while interacting with an application.
+svelte-vitals: An in-house NPM package providing common components, libraries, and services for Svelte applications.
+diasyui components: A UI library that should be preferred over building components from scratch, apart from specific exceptions.
+Don't Keep Activity mode: A developer option on Android devices that destroys an activity as soon as the user navigates away from it, used for testing.
+LCEStore: A utility from svelte-vitals used to manage Loading, Content, and Error states for API calls.
+ErrorHandlingDetails: An attribute in API responses used for backend-driven error handling.
+NucleiLogger: A utility used for logging non-fatal errors.
+Throttle speed: A feature in browser developer tools used to simulate slow network connections for testing.
+Edge case scenarios: Unusual or extreme conditions that an application might encounter, requiring specific testing.
+Placeholder image: An image displayed temporarily while the actual image is loading or if it fails to load.
+Testlink: A test case management tool.
+Playwrite: A framework used for End-to-End testing.
+Readability: How easy it is for developers to understand and maintain code.
+Naming conventions: Standardized rules for naming variables, functions, files, etc.
+Lambda expressions: Concise anonymous functions.
+Enums: A set of named constants, recommended for use where applicable.
+Caching: Storing data or responses temporarily to avoid repeated fetching and improve performance.
+Exponential backoff: A strategy for retrying failed API calls with increasing delays between retries.
+Stale headers: Outdated headers being passed in API requests, potentially leading to issues with authentication tokens.
+Memory leak: A situation where an application consumes increasing amounts of memory without releasing it, leading to performance issues or crashes.
+Reactive block (Svelte): A block of code in Svelte that automatically re-runs when variables it depends on change.
+CD (Continuous Deployment): The process of automatically deploying code changes to production environments after they pass all necessary tests.
+CI (Continuous Integration): The practice of frequently merging code changes into a shared repository, followed by automated builds and tests.
+manual_workflow.yaml: A GitHub Actions workflow file used for CI-CD in the dev environment.
+charts (helm charts): Packages containing definitions of Kubernetes resources used for deploying applications.
+configs (env level values): Directories containing environment-specific configuration values used by helm charts.
+Makefile: A file containing commands and variable definitions used by the CI/CD pipeline.
+Dockerfile: A file containing instructions for building a Docker image of the SvelteKit application.
+cache.py: A Python script used to initiate caching on Nginx after deployment.
+readyz: A readiness probe endpoint used by Kubernetes (kublet) to check if an application instance is ready to receive traffic.
+Kublet: An agent that runs on each node in a Kubernetes cluster and manages the pods running on that node.
+Semantic versioning: A versioning scheme (Major.Minor.Patch) used to indicate the type of changes in a software release.
+dl_handler_payload: Partner configuration that may need to be updated when a new minor or major version of a category is released.
+Partner config: Configuration specific to a partner, which can be cached on the user's device.
+Incognito mode: A browser mode that does not store browsing history, cookies, site data, or information entered in forms.
+Nginx: A popular web server and reverse proxy.
+Envoy: A high-performance open-source edge and service proxy.
+IPv4/IPv6: Internet Protocol versions used for addressing devices on a network.
+WAFs (Web Application Firewalls): Security devices that monitor and filter HTTP traffic between a web application and the internet.
+Sample app mobile: A mobile application used for testing web views.
+Web view: A component within a mobile app that displays web content.
+TDD (Test-Driven Development): A software development approach where tests are written before the code they are meant to test.
+vitest: A testing framework for JavaScript/TypeScript projects.
+@testing-library/svelte: A library for testing Svelte components in a way that resembles how users interact with them.
+Typography Mapping: Defining and using consistent font styles and sizes according to design specifications.
+Color Mapping: Defining and using consistent color palettes according to design specifications.
+Quiz Answer Key
+Environment variables for local development are defined in the .env.local file in the project root.
+Cross Service URIs are used to formulate and launch the absolute URL for web app services that are not part of the current Single Page Application (SPA), such as launching a transactions page from a category SPA.
+The recommended main branch name for a category/product svelte GitHub repository is dev.
+A Pull Request (PR) should ideally be as short as possible, with a fact mentioned being that 90% of Google PRs have a maximum of 10 file changes or 24 lines changed.
+The primary function of the svelte-vitals package is to provide common components, libraries, and services for Svelte applications, acting as an in-house NPM package.
+Components should be placed in src/lib if they need to be used in multiple places across the application. If a component is only used once and is specific to a particular route, it should be placed in the components folder within that route's directory under src/routes.
+Svelte component file names should start with a capital letter, following a PascalCase-like convention (e.g., FlightSearchBox.svelte).
+base-content is the base text color used everywhere, mostly black. base-content-light is a lighter shade of gray.
+On Nginx, configuration files like /etc/nginx/conf.d/dev-web.conf, /etc/nginx/conf.d/staging-web.conf, and /etc/nginx/conf.d/uat-web.conf are updated for different web environments.
+The readyz endpoint serves as a readiness probe endpoint, used by Kubernetes (specifically the kublet) to check if a running instance of the SvelteKit application is ready to handle incoming traffic.

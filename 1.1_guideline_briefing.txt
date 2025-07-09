@@ -1,0 +1,281 @@
+Here is a detailed briefing document reviewing the main themes and most important ideas or facts from the provided sources:
+
+Briefing Document: Nuclei Svelte Development Guidelines and Practices
+
+Date: June 4, 2024
+
+Subject: Review of Nuclei Svelte Development, Deployment, and Style Guidelines
+
+Executive Summary:
+
+This document summarizes key information regarding development practices, code management, deployment strategies, and styling conventions for Nuclei Svelte projects based on the provided source materials. Key themes include structured code management with a focus on small, frequent Pull Requests (PRs), detailed guidelines for code quality and testing (including TDD), a defined deployment process across various environments (Dev, UAT, Production), the use of environment variables for configuration, and specific guidelines for color and typography mapping using Svelte Vitals and CSS classes. The Nuclei Svelte Project Generator is highlighted as a tool for initiating new projects with pre-configured CI/CD.
+
+Main Themes and Key Takeaways:
+
+Code Management and Review (Source: Code Management and Review):
+Nuclei Svelte projects are hosted in GitHub repositories with a naming convention of nuclei-svelte-{category}.
+The dev branch is the main branch and has branch protection rules.
+Developers work on feature-based branches checked out from their own base branches.
+Important Principle: PRs should be raised to individual base branches and only merged to dev when stable.
+Key Practice: "PR should be raised everyday." and "PR should not be lengthy."
+Fact: "90% of Google PRs have max 10 files change, or 24 lines change." This serves as a benchmark for short PRs.
+Review Process: Reviewers are required to "run the PR branch code on his local system and test the same, as a part of review."
+Coding Guidelines: Emphasis on following coding guidelines, writing unit tests for business logic, and adhering strictly to Figma UI Design.
+Code Practices Checklist: A comprehensive list of considerations for code quality, including simplification, modularity, security, use of existing utilities, deprecation of obsolete code, minimizing global variables, explicit exports, and adding/updating unit tests.
+Dependency Management: Guidelines for adding new dependencies, focusing on necessity, size impact, popularity, recommendation by authorities (like Google), and potential breaking changes with version updates.
+UI and UX Review: Checklist covering design matching, use of common components (from svelte-vitals), browser compatibility (Chrome and Safari), responsiveness across devices (including Galaxy Fold and mobile sample app web view), and avoidance of hardcoded colors in favor of theme colors.
+Error Handling/Logging: Importance of user-friendly error messages (verified by product team), logging non-fatal errors (using NucleiLogger), testing with no/slow network, proper API call failure handling (using LCEStore from svelte-vitals), backend-driven error handling synchronization, and handling unexpected user input and permission denials. Critical data should not be logged.
+Testing: Emphasis on testing critical data not being logged, developer understanding of test cases (Testlink), code testability, adding/updating UI test cases, verification with Nuclei QA Test cases, and updating developer test suites.
+Readability: Guidelines for code understandability, data flow clarity, restructuring data flow, following naming conventions, using lambda expressions and enums where appropriate, documentation, updating/deleting irrelevant comments, using TODOs, appropriate file/package placement, and keeping methods concise (ideally around 20-30 lines, under 100 characters per line).
+Performance/Optimisations: Considerations for API response caching, reducing API call frequency, exponential backoff for APIs, passing updated headers/tokens, avoiding stale headers and empty tokens, minimizing object creation in frequently called methods (especially reactive blocks in Svelte), and checking for memory leaks.
+API Hostname and Cross Service URIs (Source: Api Hostname and Cross Service URIs):
+Different environments (dev, uat, prod) use different API endpoints for backend service calls.
+Configuration of API hostnames and cross-service URIs is managed through environment variables.
+Key Files: .env and .env.local files store environment variables.
+.env.local is used specifically for local development and contains variables like VITE_ENV, VITE_HOST_NAME, and VITE_ACCESS_TOKEN.
+.env is updated in the CI/CD pipeline using values defined in the Makefile.
+VITE_HOSTNAME: Used for configuring the hostname for API calls. Example usage: export const HOST_NAME = import.meta.env.VITE_ENV. (Note: The example shows VITE_ENV being assigned to HOST_NAME, which might be a simplification; typically VITE_HOSTNAME would be used for the hostname itself).
+VITE_ENV: Used to determine the current environment (dev/uat/prod).
+Cross Service URIs: Addresses web app services that are not part of the current Single Page Application (SPA).
+To launch a cross-service page (e.g., transactions page from a category SPA), the absolute URI is needed along with the environment variable (VITE_ENV) to formulate the URL.
+Example: The launchTransactionScreen function demonstrates constructing a cross-service URL using location.href.origin to get the base URI and import.meta.env.VITE_ENV to determine the version segment (dev or v1-0).
+Dev and Prod Environments & CI/CD (Source: Dev and Prod environments, Release and Deployments):
+Specific files and directories are required in the project root for CI/CD and environment configuration.
+Required Files/Dirs: .github/workflows (containing cd.yaml, ci.yaml, manual_workflow.yaml), charts, configs, .env, .env.local, update.env.sh, Makefile, Dockerfile, cache.py, and a readyz readiness probe endpoint.
+CI/CD Workflows:ci.yaml: Continuous Integration used for UAT and Prod.
+cd.yaml: Continuous Deployment used for UAT and Prod.
+manual_workflow.yaml: Used for CI-CD in the dev environment.
+Readiness Probe: A /readyz endpoint (src/routes/readyz/+server.ts) is implemented using readiness utility from @CDNA-Technologies/svelte-vitals for Kubernetes health checks.
+Development Deployment: Manual workflow triggered from GitHub Actions tab, selecting the branch to deploy. Requires navigating to a specific URL format (https://nuclei-mwa-dev.gonuclei.com/{category}-base/dev/{category}/landing) to see changes.
+UAT Deployment: Involves creating a UAT release in the GitHub repository.
+Steps include drafting a new release, choosing a tag (e.g., v0.0.1-draft), selecting the target branch, adding a title and description indicating uat/all, uat/universal, or uat/safari11.
+Releases are marked as "pre-release".
+Publishing the release triggers the ci.yaml pipeline.
+After CI, the Continuous Delivery workflow is manually run, selecting the branch, release tag, and environment (uat).
+Requires navigating to a specific UAT URL format (https://nuclei-mwa-uat.gonuclei.com/{category}-base/v0-0/{category}/landing) to see changes.
+Production Deployment: Requires approval from a team lead/manager.
+Similar steps to UAT but without marking as "pre-release".
+Description indicates production/all for India or uae-production/all for UAE.
+Semantic Versioning: Production releases use semantic versioning (Major.Minor.Patch).
+Patch version changes are preferred for instant reflection.
+Minor/Major version changes reflect after 3 days due to partner config caching and require updating dl_handler_payload. These deployments involve a separate deployment on the cluster.
+Guidelines exist for India and UAE deployments, potentially using suffixes in tags (e.g., 1.0.5-uae).
+Running the CD workflow for production triggers a Slack message for approval on the #svelte-development channel.
+Post-Deployment Verification (Production): Launching in incognito/cache-disabled mode with a ?v=X query parameter is mandatory to ensure new resources are cached on IPV4 Nginx machines. Testing on sample app mobile from a killed state helps cache on IPV6 Nginx machines. Testing on both wifi (IPV4) and mobile data (IPV6) is necessary.
+Troubleshooting Deployment Issues: Checking partner config dl_handler_payload for correct version, browser cache control (5 mins for index.html), and clearing app data/using query parameters are suggested if changes don't reflect instantly.
+Nginx and Envoy Configuration (Source: Config update on Ngnix and Envoy):
+Details the Nginx and Envoy configurations across different environments (Dev, Staging, UAT, Production, UAE Production).
+Nginx: Configuration files are located in /etc/nginx/conf.d/ for various hostnames (dev-web.gonuclei.com, staging-web.gonuclei.com, uat-web.gonuclei.com, etc.). Production machine access is required from the DevOps team.
+Envoy:Different processes (envoy-json, envoy-web) are used for Svelte web API calls and Flutter web API calls depending on the environment.
+Configuration files vary by environment (/etc/envoy-json/envoy-dummy-config.yaml, /etc/envoy-web/envoy-config.yaml).
+Commands to restart Envoy processes (systemctl restart envoy-json, systemctl restart envoy-web) are provided.
+The ps aux | grep envoy command can be used to find running Envoy processes and their file paths.
+Note: Staging machine uses separate Envoy processes (envoy-json for Svelte, envoy-web for Flutter), while UAT, Production, and UAE Production use a single envoy-web for both Svelte and Flutter API calls.
+Access to production machines is required from the DevOps team.
+The document notes the need to "Always update after making changes".
+Directory Structure (Source: Directory structure):
+Provides guidelines for organizing files within a Svelte project.
+Components: Can be placed in src/lib (for reusable components) or src/routes (for route-specific components). Route-specific components should be in a components folder within the route directory. Sub-components can be in sub-folders with snake-case names.
+Store: There should be only one store file per Category, located at src/lib/{category}-commons/{category}.store.ts. Multiple store files can increase download size and server round trips.
+APIs/Service Calls: A single file for all API calls/services per category, located at src/lib/{category}-commons/{category}.api.ts.
+Static Files: Static files and images can be stored in a static folder, but CDN is the preferred location for images.
+Tests: Playwright test cases are placed in the tests folder.
+Build: npm run dev creates .svelte-kit, npm run build creates a build folder (Node.js runnable).
+Server-Only Modules: File names should end with .server.ts or be placed in $lib/server.
+Naming Conventions (Source: Naming conventions):
+Defines conventions for various code elements:
+Constants: Capital letters (e.g., API_KEY).
+Variables: Camel case (e.g., apiKeyNuclei).
+Component File Name: Starts with a capital letter (e.g., FlightSearchBox.svelte).
+Functions Name: Camel case (e.g., flightUp).
+Store File Name: Small case, separated by hyphens, ending with .stores (e.g., flights-details.stores.ts).
+Store Variable Name: Starts with small letter, ends with Store (e.g., coreConfigStore).
+CSS Class Name: Small case, separated by hyphens (e.g., .flight-connect).
+Import Components: Use the same name as the component file name.
+Import Paths: Relative imports for files/components internal to a route, absolute imports for external ones.
+Unit Test File Name: Same as component/library name, ending with .test.ts (e.g., FlightSearchBox.test.ts).
+End-to-End Test File Name (Playwright): Small case, separated by hyphens, ending with .spec.ts (e.g., flight-booking.spec.ts).
+Aliases: Defined in svelte.config.js for quick access to folder/file paths (e.g., $flights for /src/routes/flights).
+Nuclei Svelte Project Generator (Source: Nuclei Svelte Project Generator - two sources with identical content):
+A tool (nuclei-svelte-project-generator) is available as an in-house NPM package to generate Svelte projects with pre-configured CI/CD.
+Installation: Installed globally using npm install -g @CDNA-Technologies/nuclei-svelte-project-generator@latest. May require sudo due to OS restrictions.
+Usage: Run create-nuclei-svelte-project in the terminal.
+Inputs: Requires Project Name (nuclei-svelte-<project_name>), Module Name (e.g., recharge), and comma-separated Route Names in the design flow sequence (e.g., "landing, listing, search-city").
+GitHub Deployment Setup: Requires setting specific secrets in the GitHub repository (General, Staging, UAT, India Production, India Production DR, UAE Production categories mentioned, though specific secret names are marked as TODO). Examples of secret names include APPROVAL_WORKFLOW_APP_ID, NPM_PACKAGE_PUBLISH_TOKEN, DEV_KUBECONFIG, etc.
+The document links to GitHub documentation on using secrets in GitHub Actions.
+Links to internal documentation on learning Svelte and following guidelines are provided.
+Svelte Vitals (Source: Svelte Vitals):
+svelte-vitals is an in-house NPM package providing common components, libraries, and services for Svelte applications.
+Installation: Requires NPM login with scope @CDNA-Technologies and registry https://npm.pkg.github.com using a GitHub Access Token with read:package and repo permissions. Then installed via npm install @CDNA-Technologies/svelte-vitals or adding to package.json.
+Releasing a New Package:Stable Package: Create a new release from the dev branch in the svelte-vitals GitHub repo, incrementing the version number. Generate release notes referencing merged PRs and adding custom notes (New Components, Features, Fixes, Breaking Changes). Mark as a stable release. A GitHub Action runs, sending a Slack message for approval.
+Test Package: Clone the svelte-vitals repo, create a new branch with changes. Requires a GitHub Access Token with write:package permission. Expose new features/components in index.ts and potentially package.json. Add a new version with a specific format: 0.0.74-<name_of_the_branch_with_hyphens>.<semi_version>. Run npm run build and npm run package, then npm publish ./package. Test versions should not be merged to production.
+TDD Guidelines (Source: TDD Guidelines):
+Outlines the principles of Test-Driven Development (TDD) for Svelte components.
+Core Cycle:Start with a failing test.
+Write the minimum code to make the test pass.
+Refactor the code.
+Repeat the cycle.
+Tools: Recommend using vitest as the testing framework and @testing-library/svelte for rendering and interacting with Svelte components.
+Best Practices: Use descriptive test names, test edge cases (null, empty arrays, etc.), test user interactions (clicking, typing, scrolling), and use TDD to drive the component design.
+Colour Mapping (Source: Colour Mapping):
+Defines CSS class names and their intended usage for different color purposes within the Svelte application, likely linked to a theme system.
+The mapping is located in /lib/core-commons/ColorTemplate.svelte.
+Examples of color classes and their uses:
+primary: Icons, Radio buttons, Check boxes.
+primary-focus: Darker version of primary.
+secondary: App Bar.
+secondary-content: App Bar element color, TabUnderlineColor, TabBarTextColor.
+accent: Primary CTA button Enabled Colour.
+accent-content: Button Item Colour (text/icon inside button).
+neutral: Container colors (used in some places).
+neutral-content: White for light theme, black for dark theme (mostly for Card background).
+primary-content: Content inside components with primary color (mostly same as secondary-content).
+base-100: App background color.
+base-200: Lighter grey for icons, border color.
+base-content: Base text color (mostly black).
+base-300: Dark/gray dividers, dark gray text.
+base-content-light: Lighter shade of gray.
+Typography Mapping (Source: Typography Mapping):
+Maps Figma typography styles to CSS class names for use in the Svelte application.
+The mapping is located in /lib/core-commons/TypographyTemplate.svelte.
+Examples of typography classes and their corresponding styles (font-weight, font-size):
+nav-text: 600, 20px
+heading-1: 500, 24px
+heading-2: 500, 20px
+heading-3: 500, 16px
+sub-text: 400, 14px
+card-heading: 600, 18px
+card-sub-heading: 500, 16px
+card-content: 400, 14px
+content: 400, 16px
+content-2: 400, 12px
+content-3: 400, 12px
+cta-text: 700, 20px
+cta-ghost-text: (Style not explicitly given, but name implies a variant of CTA text)
+base-content-light-40: Lightest grey colour.
+base-content-light: Light grey colour.
+base-content-light-60: Dark grey colour.
+Key Facts and Concepts:
+
+Use of environment variables (.env, .env.local, Makefile) for environment-specific configurations like API hostnames.
+Strict code management workflow centered around small, frequent PRs to individual feature branches, merging to dev only when stable.
+Requirement for reviewers to locally test the PR code.
+Emphasis on code quality through a detailed checklist covering various aspects including security, modularity, performance, and readability.
+Importance of following UI/UX design meticulously and testing across devices and browsers.
+Defined error handling and logging practices, including the use of NucleiLogger and LCEStore from svelte-vitals.
+Deployment process across Dev, UAT, and Production environments, involving GitHub Actions, releases, and specific verification steps (especially for Production).
+Semantic versioning for production releases, with different implications for patch vs. minor/major versions.
+Caching mechanisms on partner config and index.html affecting deployment visibility.
+Detailed Nginx and Envoy configurations for routing and managing API calls across environments.
+Structured directory organization with guidelines for component placement, store files, and API service files.
+Specific naming conventions for various code elements to ensure consistency.
+The nuclei-svelte-project-generator as a tool to streamline project setup with CI/CD.
+svelte-vitals as an in-house package providing common utilities and components.
+Adherence to TDD principles using vitest and @testing-library/svelte.
+Standardized CSS class names for color and typography mapping, likely linked to a theming system.
+This briefing document provides a comprehensive overview of the critical aspects of Nuclei Svelte development and deployment based on the provided source materials.
+
+
+Nuclei Svelte Project Architecture and Practices
+
+What are the key configuration files and directories used in a Nuclei Svelte project, and how are they used?
+Nuclei Svelte projects utilize several important files and directories for configuration and project structure. The .env and .env.local files are crucial for managing environment variables, such as VITE_HOSTNAME and VITE_ENV, which are used for API calls and defining cross-service URIs. The .env.local is specifically for local development, while .env is updated in the CI/CD pipeline. The project structure typically includes a src directory containing lib and routes. Shared components and libraries are placed in src/lib, while route-specific components and files reside within src/routes. API calls are consolidated in a single file per category within src/lib/{category}-commons/{category}.api.ts, and application state is managed in a single store file per category at src/lib/{category}-commons/{category}.store.ts. Static assets are stored in a static folder, though using a CDN is recommended for images. Testing configurations are handled in a tests folder for Playwright end-to-end tests. Build-related artifacts are generated in the .svelte-kit (during development) and build (for production) folders. Server-only modules are designated with the .server.ts extension or placed in $lib/server. CI/CD configurations (cd.yaml, ci.yaml, manual_workflow.yaml), Helm charts (charts), environment-level values (configs), update scripts (update.env.sh), Makefiles, and Dockerfiles are also integral to the project setup. A readyz endpoint in src/routes/readyz/+server.ts serves as a readiness probe for Kubernetes.
+
+How are environment variables handled for API hostnames and cross-service URIs in different environments?
+Environment variables are the primary mechanism for configuring API hostnames and cross-service URIs across different environments (dev, uat, prod). The VITE_HOSTNAME variable is used to define the API endpoint for backend service calls. Cross-service URIs, which point to web application services outside the current Single Page Application (SPA), are constructed using the location.href.origin and environment-specific path segments determined by the VITE_ENV variable. For instance, launching a transaction page from a different SPA involves formulating a URL using the base URI from location.href.origin and incorporating the environment (e.g., dev, v1-0 for production) as part of the path. The values for these environment variables are defined in the Makefile and updated in the .env file during the CI/CD pipeline, while .env.local is used for local development configurations.
+
+What are the key principles and practices for code management and review in a Nuclei Svelte project?
+Code management and review in Nuclei Svelte projects adhere to several key principles. Each category or product has its own GitHub repository following a nuclei-svelte-{category} naming convention. The dev branch is designated as the main branch with branch protection rules. Developers work on feature-base-branches and raise pull requests (PRs) to these individual branches, merging to dev only when stable. PRs should be raised daily, be short (ideally with minimal file and line changes), and include a summary of changes, motivation, context, and any new dependencies.
+
+Code review involves running the PR branch code locally and testing it. Adherence to coding guidelines, including minute details of Figma UI designs, is mandatory. Code practices emphasize simplicity, modularity, reusability (checking for existing functionalities), security, and the use of design patterns. Obsolete code should be deprecated or deleted (preferably in separate PRs). Minimizing global variables and exporting only necessary functions are encouraged. Unit tests are required for all business logic and need corresponding updates or additions for code changes. Build size changes should be monitored using npm run build, and heavy files or dependencies should be optimized. Adding new dependencies requires careful consideration of necessity, size impact, popularity, and potential breaking changes.
+
+What are the deployment strategies for different environments (Development, UAT, Production) in a Nuclei Svelte project?
+Deployment strategies vary based on the environment. For Development, deployment is triggered manually through a GitHub Actions workflow (manual_workflow.yaml) on the project's repository. After running the workflow, the deployed changes are reflected on the development URL (e.g., https://nuclei-mwa-dev.gonuclei.com/{category}-base/dev/{category}/landing).
+
+For UAT, a release is drafted from the dev branch in the GitHub repository's Release section. A new tag (e.g., v0.0.1-draft) is created, and the release is marked as a pre-release with a description indicating the deployment target (e.g., uat/all). Publishing this release triggers the Continuous Integration (CI) pipeline (ci.yaml). Once CI is complete, the Continuous Delivery (CD) workflow is manually triggered, selecting the branch, release tag, and 'uat' environment. The deployed changes are then accessible on the UAT URL (e.g., https://nuclei-mwa-uat.gonuclei.com/{category}-base/v0-0/{category}/landing).
+
+Production releases require team lead or manager approval. Similar to UAT, a release is drafted, but without marking it as a pre-release. Production releases use semantic versioning (Major.Minor.Patch), and the description specifies the production target (e.g., production/all for India, uae-production/all for UAE). Patch version changes are preferred for instant reflection. Minor and major version changes reflect after a delay due to partner config caching. The CD workflow is triggered manually, selecting the 'production' environment. A Slack message is sent for approval before the CD proceeds. After CD completion, the deployed changes are verified on the production URL (e.g., https://nuclei-mwa-production.gonuclei.com/{category}-base/v1-0/{category}/landing), requiring cache invalidation techniques (like appending ?v=X to the URL) and testing on both Wi-Fi and mobile data to ensure caching on all NGINX machines.
+
+How are colors and typography managed and applied in a Nuclei Svelte project?
+Colors and typography are managed through dedicated Svelte files (ColorTemplate.svelte and TypographyTemplate.svelte) located in the lib/core-commons directory. These files provide mappings for various UI elements to specific color and typography classes.
+
+For colors, a palette of predefined classes is used, such as primary (for icons, radio buttons, checkboxes), secondary (for App Bars), accent (for primary CTA buttons), base-100 (for app background), and variations for content and dividers (e.g., primary-content, secondary-content, base-content, base-content-light, base-300). Hardcoding colors is discouraged; theme colors should be used, considering dark theme scenarios.
+
+Typography is similarly managed with classes corresponding to different text styles based on Figma designs. Examples include nav-text, heading-1 through heading-3, sub-text, card-heading, card-sub-heading, card-content, content, content-2, content-3, and cta-text/cta-ghost-text. These classes define properties like font-weight and font-size. The use of common components from svelte-vitals and libraries like DaisyUI is encouraged for consistent UI/UX.
+
+What are the considerations for error handling and logging in a Nuclei Svelte application?
+Error handling and logging are crucial aspects of Nuclei Svelte applications. User-friendly error messages, verified by the product team, should be displayed. Non-fatal errors should be logged using a utility like NucleiLogger within try-catch blocks to avoid blocking user interaction. The application should be tested under poor network conditions (throttling speed in browser developer tools).
+
+When API calls fail, the application should utilize the LCEStore utility from svelte-vitals to manage the UI state, showing loading view (setLoadingLce), error view (setErrorLce) based on the ErrorHandlingDetails from the API response, or content view (setContentLce). The UI should be conditional based on the $lceStore.isLoading, $lceStore.hasError, and $lceStore.hasContent states. Backend-driven error handling should be in sync with backend APIs. The application should handle unexpected user input in text fields and search fields by showing proper error messages. Permission handling should be implemented, addressing scenarios where required permissions are denied. Edge cases, such as pagination behavior with large lists, and the display of "No content" views when lists are empty, should be considered. Placeholder images should be shown if images fail to load, potentially using components from svelte-vitals that handle this automatically. Critical data should not be logged.
+
+What is the purpose of the svelte-vitals package, and how is it installed and used?
+The svelte-vitals package is an in-house NPM package providing common components, libraries, and services for Svelte applications to promote consistency and reusability.
+
+To install svelte-vitals, developers need to first log in to the NPM package registry hosted on GitHub using npm login --scope=@CDNA-Technologies --registry=https://npm.pkg.github.com. This requires providing a GitHub username, a personal access token with read:package and repo permissions, and the associated GitHub email. Once logged in, the package can be installed using npm install @CDNA-Technologies/svelte-vitals or by adding it as a dependency in the package.json file.
+
+Releasing a new stable package involves creating a new release from the dev branch in the svelte-vitals GitHub repository, incrementing the version number, generating release notes (including new components, features, fixes, and breaking changes), and marking it as a stable release. A GitHub Action is triggered, and a Slack message is sent for approval. Releasing a test package involves cloning the repository, creating a new branch, making changes, and following a specific process that includes updating the GitHub access token with write:package permission, exposing new components/functions in index.ts and package.json, setting a test version number (e.g., 0.0.74-<branch_name>-<semi_version>), building the package (npm run build, npm run package), and publishing it locally (npm publish ./package). Test versions are for local use and should not be merged into production.
+
+How is Test-Driven Development (TDD) practiced in Nuclei Svelte projects, and what tools are used?
+Test-Driven Development (TDD) is practiced in Nuclei Svelte projects by following a cycle:
+
+Start with a failing test: Write a test that defines the desired behavior but currently fails.
+Write the minimum amount of code: Implement only the necessary code to make the failing test pass.
+Refactor the code: Improve the code's readability and maintainability after the test passes.
+Repeat: Write new tests for additional behaviors or edge cases and repeat the cycle.
+vitest is used as the testing framework, and @testing-library/svelte is used for rendering and interacting with Svelte components within tests. Tests should have descriptive names reflecting the behavior being tested. Edge cases (e.g., null values, empty data, unexpected input) and user interactions (clicking, typing, scrolling) should be thoroughly tested. TDD is used to drive the design of components, ensuring they are testable and meet requirements. Unit test files follow the naming convention ComponentName.test.ts, and Playwright end-to-end test files use feature-name.spec.ts. Developers are expected to read existing test cases (if available on TestLink) and update the developer test suite based on new features or modifications. Code testability is a key consideration.
+
+
+Svelte Project Lifecycle and Roles
+
+Here is a detailed timeline and cast of characters based on the provided sources:
+
+Detailed Timeline of Events:
+
+Ongoing: Development and maintenance of Svelte applications for various categories/products. Each category has its own GitHub repository following the nuclei-svelte-{category} naming convention.
+Prior to Project Setup (Potentially): Developers set up their NPM environment, including logging into the @CDNA-Technologies scope with a GitHub Access Token to access private packages like svelte-vitals and the nuclei-svelte-project-generator.
+Project Setup: A new Svelte project is initiated using the create-nuclei-svelte-project command. This involves providing inputs such as Project Name (e.g., nuclei-svelte-recharge), Module Name (e.g., recharge), and a comma-separated list of Route Names (e.g., landing, listing, search-city). This generator sets up the initial project structure, including template route files and necessary configuration files.
+Project Configuration:Environment variables are defined in .env and .env.local files, managed through a Makefile and updated during the CI/CD pipeline. These include VITE_ENV, VITE_HOST_NAME, and VITE_ACCESS_TOKEN.
+CI/CD workflows are established in .github/workflows, including cd.yaml (for UAT/Prod deployment), ci.yaml (for UAT/Prod integration), and manual_workflow.yaml (for dev CI-CD).
+Helm charts and configuration files for Kubernetes deployment are placed in the charts and configs directories, respectively.
+A Dockerfile is created to build the SvelteKit app as a Docker image.
+A Python script (cache.py) is added for initiating NGINX caching after deployment.
+A readiness probe endpoint (readyz) is implemented at src/routes/readyz/+server.ts.
+Development Cycle:Developers create feature branches based on their assigned features.
+Coding is done following established guidelines, including naming conventions (camel case for variables/functions, capital letters for components/constants), directory structure recommendations (components in src/lib or src/routes, single store/API file per category), and UI/UX considerations (matching Figma designs, testing across devices/browsers).
+Unit tests are written for all business logic, ideally following Test-Driven Development (TDD) principles using vitest and @testing-library/svelte.
+Code is reviewed following a defined process: pull requests (PRs) are raised to individual base branches (daily, short PRs preferred), reviewers run and test the PR code locally, and adherence to coding guidelines, testing requirements, and performance optimizations is checked.
+Testing includes unit tests, potentially UI tests, verification with Nuclei QA Test cases, and updates to the developer test suite. Edge cases, error handling (including logging with NucleiLogger and using LCEStore), network conditions, and permissions are considered.
+Svelte Vitals Development/Release:Changes to the svelte-vitals package are made in the svelte-vitals GitHub repository.
+For test packages: A new branch is created, changes are made, a test package version is defined (e.g., 0.0.74-<branch_name>-<semi_version>), the package is built (npm run build, npm run package), and published (npm publish ./package). Requires write:package permission on the GitHub Access Token.
+For stable packages: A new release is created from the dev branch in the svelte-vitals GitHub repo, the version number is incremented, release notes are generated and customized, and the release is marked as stable. A GitHub Action is triggered, requiring approval via a Slack message on the #svelte-development channel before the package is fully released.
+Release and Deployment (Development Environment):Developers trigger a manual workflow on their project's GitHub repository (Actions tab -> Manual Workflow -> Run workflow -> Select branch -> Run Workflow CTA).
+Deployed changes can be viewed at https://nuclei-mwa-dev.gonuclei.com/{category}-base/dev/{category}/landing.
+Release and Deployment (UAT Environment):A UAT release is drafted on GitHub (Release Section -> Draft a new release).
+A new tag is created (e.g., v0.0.1-draft).
+The target branch is selected.
+A release title is added, and uat/all, uat/universal, or uat/safari11 is specified in the description.
+The release is marked as a pre-release.
+The release is published, triggering the CI pipeline (.github/workflows/ci.yaml).
+After CI completes, the Continuous Delivery workflow is run (Continuous Delivery -> Run Workflow -> Select branch, release tag, Environment (uat) -> Run workflow cta).
+Deployed changes can be viewed at https://nuclei-mwa-uat.gonuclei.com/{category}-base/v0-0/{category}/landing.
+Release and Deployment (Production Environment - India and UAE):A production release is created on GitHub (similar to UAT, but not marked as pre-release). Team lead/manager approval is required.
+production/all (for India) or uae-production/all (for UAE) is specified in the description.
+Semantic versioning (Major.Minor.Patch) is used for tags. Patch version changes are preferred for instant reflection. Minor/Major version changes require updating partner configs and take longer to reflect (up to 3 days due to caching). Separate tags are used for India and UAE (e.g., 1.0.5 and 1.0.5-uae).
+The environment is selected as production when running the CD workflow.
+Core Tech Team approval is required via a Slack message on #svelte-development.
+After CD completes, deployed changes are verified on production URLs (https://nuclei-mwa-production.gonuclei.com/{category}-base/v1-0/{category}/landing for India, similar for UAE).
+Verification involves incognito/cache-disabled browsers, appending ?v=X to the URL to bypass browser cache, and testing on both Wi-Fi (IPV4 NGINX machines) and mobile data (IPV6 NGINX machines) to ensure caching on all NGINX instances.
+Launching the category in the Sample app mobile from a killed state is done to ensure caching on IPV6 NGINX for other users.
+Ongoing: Configuration updates on NGINX and Envoy proxies to manage traffic routing and API calls for different environments (dev, staging, uat, preprod, production - India and UAE). This involves updating configuration files (e.g., /etc/nginx/conf.d/*.conf, /etc/envoy-json/envoy-dummy-config.yaml, /etc/envoy-web/envoy-config.yaml) and restarting relevant services (systemctl restart envoy-json, systemctl restart envoy-web).
+Ongoing: Adherence to established design guidelines for colors (using the ColorTemplate.svelte file and theme colors) and typography (using the TypographyTemplate.svelte file and defined CSS classes).
+Cast of Characters:
+
+Team Manager: Responsible for setting up and maintaining the dev branch as the main branch and adding branch protection rules in the GitHub repositories.
+Contributor (Developer): Works on assigned features, creates feature branches, writes code and unit tests, raises daily pull requests (PRs) to their individual base branches, and is responsible for ensuring their code meets all guidelines and passes tests.
+Reviewer: Responsible for reviewing pull requests, which includes running the PR code locally and testing it, as well as checking for adherence to coding guidelines, testing requirements, UI/UX designs, and performance optimizations.
+DevOps Team: Provides access and details for production machines and likely manages the underlying infrastructure for deployment, NGINX, and Envoy configurations.
+Product Team: Responsible for verifying user-friendly error messages.
+Nuclei QA: Provides test cases for verifying code changes.
+Team Lead/Manager: Requires to approve production release steps.
+Core Tech Team: Receives Slack notifications about production CD workflows and provides approval.
+Persons from the approval list (for svelte-vitals stable release): Individuals authorized to approve the release of stable versions of the svelte-vitals package.
